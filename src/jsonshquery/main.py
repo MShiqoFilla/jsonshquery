@@ -195,11 +195,12 @@ def app(data):
                 with open(result_path, "w") as f:
                     json.dump(result, f, indent=4)
             
-            except ValueError as e:
-                print("\n    " + f"\033[91m{e}\n")
-            
             except ValidationError:
                 print("\n    " + f"\033[91mPlease provide a valid query body!\n")
+
+            # This Exception raised from search_by_query function
+            except ValueError as e: 
+                print("\n    " + f"\033[91m{e}\n")
 
             except json.JSONDecodeError:
                 print("\n    " + f"\033[95mPlease provide a valid json!\n")
