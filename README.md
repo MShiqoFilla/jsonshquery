@@ -95,6 +95,16 @@ End your query with `;` and press Enter to execute. When you use this interactiv
 
 The `result_path` field is optional, you use it to specify in which directory the query result will be created, if you don't specify it by default the file name will be `jsonshquery_result.json`.
 
+You can also use it as module.
+```python
+from jsonshquery import search_by_query
+
+data = [{"id" : ..., "name" : ..., ...}, ...]
+query = {"query" : ...}
+
+result = search_by_query(data, query)
+```
+
 ## Supported Query Types
 
 - **term**: Exact field match
