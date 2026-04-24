@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "name": "Product A",
+    "category": "Electronics",
+    "price": 99.99,
+    "in_stock": true,
+    "tags": ["new", "popular"],
+    "description": "A great electronic device",
+    "address": {
+      "city": "New York",
+      "country": "USA"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Product B",
+    "category": "Furniture",
+    "price": 199.99,
+    "in_stock": false,
+    "tags": ["wood", "popular"],
+    "description": "Comfortable and versatile furniture",
+    "address": {
+      "city": "Los Angeles",
+      "country": "USA"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Product C",
+    "category": "Electronics",
+    "price": 299.99,
+    "in_stock": true,
+    "tags": ["premium"],
+    "description": "High performance providing device",
+    "address": {
+      "city": "Chicago",
+      "country": "USA"
+    }
+  },
+  {
+    "id": 4,
+    "name": "Product D",
+    "category": "Furniture",
+    "price": 149.99,
+    "in_stock": true,
+    "tags": ["office", "new"],
+    "description": "Small space solution furniture",
+    "address": {
+      "city": "Boston",
+      "country": "USA"
+    }
+  },
+  {
+    "id": 5,
+    "name": "Product E",
+    "category": "Clothing",
+    "price": 49.99,
+    "in_stock": true,
+    "tags": ["sale"],
+    "description": "Comfortable cotton t-shirt",
+    "address": {
+      "city": "Miami",
+      "country": "USA"
+    }
+  }
+]
