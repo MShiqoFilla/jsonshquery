@@ -10,6 +10,9 @@ class MatchClause(BaseModel):
 class MatchPhraseClause(BaseModel):
     match_phrase: Dict[str, Any]
 
+class MatchPhrasePrefixClause(BaseModel):
+    match_phrase_prefix: Dict[str, Any]
+
 class MultiMatchQuery(BaseModel):
     query : str
     fields : List[str]
@@ -35,17 +38,11 @@ class ExistsClause(BaseModel):
 class PrefixClause(BaseModel):
     prefix : Dict[str, Any]
 
-class WildcardQuery(BaseModel):
-    value: str
-
 class WildcardClause(BaseModel):
-    wildcard: Dict[str, WildcardQuery]
-
-class RegexpQuery(BaseModel):
-    value: str
+    wildcard: Dict[str, Any]
 
 class RegexpClause(BaseModel):
-    regexp: Dict[str, RegexpQuery]
+    regexp: Dict[str, Any]
 
 class BoolContainer(BaseModel):
     must: Optional[List["Query"]] = Field(default_factory=list)
@@ -60,6 +57,7 @@ Query = Annotated[Union[
     MatchAll,
     MatchClause,
     MatchPhraseClause,
+    MatchPhrasePrefixClause,
     MultiMatchClause,
     TermClause,
     TermsClause,
