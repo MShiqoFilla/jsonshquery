@@ -6,7 +6,7 @@ import json
 # Add src to path for testing
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from jsonshquery.core import search_by_query
+from jsonshquery.core import Jsonshquery
 
 
 # Load test data
@@ -18,6 +18,7 @@ def load_test_data():
 
 test_data = load_test_data()
 
+jq = Jsonshquery(test_data)
 
 def test_simple_term_query():
     """Test simple term query"""
@@ -26,7 +27,7 @@ def test_simple_term_query():
             "term": {"category": "Electronics"}
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert len(results) == 2  # Should find 2 electronics products
     assert all(doc["category"] == "Electronics" for doc in results)
 
@@ -38,7 +39,7 @@ def test_simple_match_query():
             "match": {"description": "great"}
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert len(results) >= 1  # Should find at least one product with "great"
     assert any("great" in doc["description"].lower() for doc in results)
 
@@ -55,7 +56,7 @@ def test_bool_must_query():
             }
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert all(doc["category"] == "Electronics" for doc in results)
     assert all(doc["in_stock"] == True for doc in results)
 
@@ -71,7 +72,7 @@ def test_bool_must_not_query():
             }
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert len(results) == 4  # Should exclude the clothing product
     assert all(doc["category"] != "Clothing" for doc in results)
 
@@ -90,7 +91,7 @@ def test_bool_combined_query():
             }
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert all(doc["in_stock"] == True for doc in results)
     assert all(doc["category"] != "Clothing" for doc in results)
 
@@ -102,7 +103,7 @@ def test_match_phrase_query():
             "match_phrase": {"description": "small space"}
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert len(results) >= 1  # Should find at least one product with "small space"
     assert any("small space" in doc["description"].lower() for doc in results)
 
@@ -117,7 +118,7 @@ def test_multi_match_query():
             }
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert len(results) >= 1  # Should find at least one product
 
 
@@ -128,7 +129,7 @@ def test_prefix_query():
             "prefix": {"name": "Product"}
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert all(doc["name"].startswith("Product") for doc in results)
 
 
@@ -139,7 +140,7 @@ def test_exists_query():
             "exists": {"field": "tags"}
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert all("tags" in doc for doc in results)
 
 
@@ -150,7 +151,7 @@ def test_terms_query():
             "terms": {"category": ["Electronics", "Furniture"]}
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert all(doc["category"] in ["Electronics", "Furniture"] for doc in results)
 
 
@@ -171,7 +172,7 @@ def test_complex_bool_query():
             }
         }
     }
-    results = search_by_query(test_data, query)["hits"]
+    results = jq.search_by_query(query)["hits"]
     assert any("great" in doc["description"].lower() for doc in results)
     assert all(doc["category"] != "Furniture" for doc in results)
 
