@@ -68,17 +68,27 @@ def check_match_all():
     """
     return True
 
+def tokenize(text):
+    return re.findall(r'\w+', text.lower())
+
 def check_match(field, text, data):
     """Apply match query to single document"""
     value = get_nested_value(data, field)
     if value is None:
         return False
+    tokens_to_match = tokenize(text)
     if isinstance(value, str):
-        tokens_to_match = [t.lower() for t in text.split(" ")]
-        if any(token in str(value).lower() for token in tokens_to_match):
+        value_tokenized = tokenize(value)
+        if any(token in value_tokenized for token in tokens_to_match):
             return True
     elif isinstance(value, (str, float)):
         if value == text:
+            return True
+    elif isinstance(value, list):
+        value_tokenized = set()
+        for val in value:
+            value_tokenized.update(tokenize(val))
+        if any(token in value_tokenized for token in tokens_to_match):
             return True
 
 def check_match_phrase(field, text, data):
@@ -86,11 +96,17 @@ def check_match_phrase(field, text, data):
     value = get_nested_value(data, field)
     if value is None:
         return False
-    target = re.sub(r'\s+', ' ', str(value)).strip()
-    text = re.sub(r'\s+', ' ', text).strip()
-    
-    if text.lower() in target.lower():
-        return True
+
+    query_tokens = tokenize(text)
+
+    values = value if isinstance(value, list) else [value]
+    for v in values:
+        target_tokens = tokenize(str(v))
+        for i in range(len(target_tokens) - len(query_tokens) + 1):
+            if target_tokens[i:i+len(query_tokens)] == query_tokens:
+                return True
+
+    return False
 
 def check_match_phrase_prefix(field, text, data):
     """Apply match_phrase_prefix query to single document"""
@@ -126,6 +142,10 @@ def check_regexp(field, pattern, data):
 def check_range(field, range_payload:dict, data):
     """Apply range query to single document, p.s: only works to numerical value, int or float"""
     value = get_nested_value(data, field)
+    
+    if value is None:
+        return False
+
     ranges_type = list(range_payload.keys())
     lower_type = None
     upper_type = None
@@ -295,8 +315,7 @@ def query_by_wildcard(query, hashed_dicts):
         List[str] : list of ids that matched query 
     """
     results = set()
-    field = next(iter(query["wildcard"].keys()))
-    pattern = query["wildcard"][field]["value"]
+    field, pattern = next(iter(query["wildcard"].items()))
     for hash_id, doc in hashed_dicts.items():
         if check_wildcard(field, pattern, doc):
             results.add(hash_id)
@@ -309,8 +328,7 @@ def query_by_regexp(query, hashed_dicts):
         List[str] : list of ids that matched query 
     """
     results = set()
-    field = next(iter(query["regexp"].keys()))
-    pattern = query["regexp"][field]["value"]
+    field, pattern = next(iter(query["regexp"].items()))
     for hash_id, doc in hashed_dicts.items():
         if check_regexp(field, pattern, doc):
             results.add(hash_id)
@@ -397,55 +415,70 @@ def get_only_some_fields(data:dict, source:List[str]=None):
         return data
     source_only = {}
     for field in source:
-        source_only[field] = data.get(field)
+        source_only[field] = get_nested_value(data, field) #data.get(field)
     return source_only
 
-def search_by_query(data:List[Dict], payload:Dict):
-    """
-    Function to apply Elasticsearch Query DSL to array of object/dictionaries
-    Args:
-        data: List[Dict] ==> list of data
-        payload: Dict ==> query
-    """
-    source = payload.get("source")
-    size = payload.get("size")
-    query = payload.get("query")
 
-    if not query:
-        query = {
-            "match_all" : {}
-        }
+class Jsonshquery:
+    def __init__(self, data):
+        self.data = data
+        self.hashes = {generate_id(json.dumps(d)) : d for d in data}
 
-    try:
-        hashes = {generate_id(json.dumps(d)) : d for d in data}
-        is_single_query = True
+    def search_by_query(self, payload:Dict):
+        """
+        Function to apply Elasticsearch Query DSL to array of object/dictionaries
+        Args:
+            data: List[Dict] ==> list of data
+            payload: Dict ==> query
+        """
+        source = payload.get("source")
+        size = payload.get("size")
+        query = payload.get("query")
 
-        if query.get("bool"):
-            is_single_query = False
+        if not query:
+            query = {
+                "match_all" : {}
+            }
 
-        if is_single_query:
-            query_type = list(query.keys())[0]
-            queried_ids = functions[query_type](query, hashes)
+        def has_duplicate_bool_queries(query_types:list[str]):
+            return (len(query_types) != len(set(query_types))) and len(query_types) > 1
 
-        if not is_single_query:
-            ids_result = {}
-            bool_queries = query["bool"]
-            number_of_query_types = len(bool_queries)
-            for query_type, list_query in bool_queries.items():
-                if number_of_query_types > 1 and query_type == "should":
-                    continue
-                ids_result[query_type] = bool_functions[query_type](list_query, hashes)
+        try:
+            is_single_query = True
 
-            list_of_ids_set = list(ids_result.values())
-            queried_ids = set.intersection(*list_of_ids_set)
-        
-        if size:
-            result = [get_only_some_fields(hashes[id], source) for id in queried_ids][:size]
-        else:
-            result = [get_only_some_fields(hashes[id], source) for id in queried_ids]
-        return {
-            "count" : len(result),
-            "hits" : result
-        }
-    except Exception as e:
-        raise ValueError("Please check again your query body!")
+            if query.get("bool"):
+                is_single_query = False
+
+            if is_single_query:
+                query_type = list(query.keys())[0]
+                queried_ids = functions[query_type](query, self.hashes)
+
+            if not is_single_query:
+                ids_result = {}
+                bool_queries = query["bool"]
+                if has_duplicate_bool_queries(list(bool_queries.keys())):
+                    raise ValueError
+                number_of_query_types = len(bool_queries)
+                for query_type, list_query in bool_queries.items():
+                    if number_of_query_types > 1 and query_type == "should":
+                        continue
+                    ids_result[query_type] = bool_functions[query_type](list_query, self.hashes)
+                    
+                    ## DEBUG
+                    # print(query_type)
+                    # for id in ids_result[query_type]:
+                    #     print(self.hashes[id])
+
+                list_of_ids_set = list(ids_result.values())
+                queried_ids = set.intersection(*list_of_ids_set)
+            
+            if size:
+                result = [get_only_some_fields(self.hashes[id], source) for id in queried_ids][:size]
+            else:
+                result = [get_only_some_fields(self.hashes[id], source) for id in queried_ids]
+            return {
+                "count" : len(result),
+                "hits" : result
+            }
+        except Exception as e:
+            raise ValueError("Please check again your query body!")
