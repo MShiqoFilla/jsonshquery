@@ -120,11 +120,24 @@ You can also use `jsonshquery` as module
 ```python
 from jsonshquery import Jsonshquery
 
-data = [{"id" : ..., "name" : ..., ...}, ...]
-query = {"query" : ...}
+data = [
+    {"id": 1, "name": "Product A", "category": "Furniture", "price": 99.99},
+    {"id": 2, "name": "Product B", "category": "Electronics", "price": 49.99}
+]
+
+query = {
+    "query": {
+        "bool": {
+            "must": [
+                {"term": {"category": "Furniture"}}
+            ]
+        }
+    }
+}
 
 jq = Jsonshquery(data)
 result = jq.search_by_query(query)
+print(f"Found {result['count']} products")
 ```
 
 ## Supported Query Types
