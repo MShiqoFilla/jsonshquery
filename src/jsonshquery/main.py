@@ -6,9 +6,10 @@ from pygments.lexers import JsonLexer
 from argparse import ArgumentParser
 from pathlib import Path
 from pydantic import ValidationError
+import time
 
 from jsonshquery.models.query import ESRequestBody
-from jsonshquery.core import search_by_query
+from jsonshquery.core import Jsonshquery #search_by_query
 
 INDENT_SIZE = 2
 
@@ -165,6 +166,8 @@ def app(data):
     print("End statement with ';' and press Enter to submit.")
     print("Press Ctrl+C to exit.\n")
 
+    jshq = Jsonshquery(data=data)
+
     while True:
         try:
             text = session.prompt(
@@ -180,9 +183,12 @@ def app(data):
                 parsed = json.loads(text)
                 parsed = ESRequestBody(**json.loads(text))
                 query = parsed.model_dump(exclude_unset=True)
-                result = search_by_query(data, query)
                 
-                text_res = f"Total Hits = {result['count']}"
+                start = time.time()
+                result = jshq.search_by_query(query)
+                execution_time = time.time() - start
+
+                text_res = f"Total Hits = {result['count']}, Execution time = {execution_time:.8f} s"
                 print("\n\033[93m" + "    ::: " + text_res + " :::" "\n")
 
                 result_path = query.get("result_path")
