@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jsonshquery"
-version = "1.0.1"
+version = "1.0.2"
 description = "Query JSON files using Elasticsearch Query DSL syntax"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -37,6 +37,10 @@ dev = [
     "black>=23.0.0",
     "flake8>=6.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/MShiqoFilla/jsonshquery"
+Repository = "https://github.com/MShiqoFilla/jsonshquery"
 
 [project.scripts]
 jsonshquery = "jsonshquery.main:main"
