@@ -97,12 +97,13 @@ The `result_path` field is optional, you use it to specify in which directory th
 
 You can also use it as module.
 ```python
-from jsonshquery import search_by_query
+from jsonshquery import Jsonshquery
 
 data = [{"id" : ..., "name" : ..., ...}, ...]
 query = {"query" : ...}
 
-result = search_by_query(data, query)
+jshq = Jsonshquery(data)
+result = jshq.search_by_query(query)
 ```
 
 ## Supported Query Types
@@ -114,7 +115,7 @@ result = search_by_query(data, query)
 - **multi_match**: Search across multiple fields
 - **match_all**: just return all documents
 - **prefix**: Prefix matching
-- **match_phrese_prefix** : Combination of `match_phrase` and `prefix`
+- **match_phrase_prefix** : Combination of `match_phrase` and `prefix`
 - **range** : Field value within range
 - **exists**: Check if field exists
 - **wildcard** : Match by pattern (*, ?, etc)
@@ -133,11 +134,13 @@ result = search_by_query(data, query)
 
 ## Some Important Notes
 
-Native elasticsearch implements scoring on query result, on the other hand jsonshquery doesn't do that. Every matched documents are pure based on the query given without any scoring process, so it is more like filtering. Therefore keyword `filter` and `must` actually works the same here.
+Native elasticsearch implements scoring on query result, on the other hand jsonshquery doesn't do that. Every matched documents are purely based on the query given without any scoring process, so it is more like filtering. Therefore keyword `filter` and `must` actually works the same here.
 
 In Elasticsearch, if `should` keyword is being used together with `must` it will become a scoring booster to the documents that matched with `must` clause, but since `jsonshquery` doesn't care about scoring, using `should` with `must` is kinda useless and the codebase itself ignore that. Anyway if `should` is the only boolean clause used in `bool`, `jsonshquery` and elasticsearch will work pretty equal, that is, it become the OR statement for the leaf clauses inside `should`.
 
 `range` clause currently limited to only value with numerical type, you cannot do date or time range using `range` here. 
+
+`jsonshquery` is not yet optimized for speed, our current objective is to make it works as expected. But you generally won't notice long waiting time for even medium to high size documents.
 
 This tool will load your json data into memory, so you might have some consideration when your json file has a huge size.
 
