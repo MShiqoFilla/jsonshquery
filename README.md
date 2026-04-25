@@ -177,7 +177,7 @@ In Elasticsearch, if `should` keyword is being used together with `must` it will
 
 `range` clause currently limited to only value with numerical type, you cannot do date or time filtering using `range` here. `nested` keyword is also not available.
 
-`jsonshquery` is not yet optimized for speed, our current objective is to make it works as expected. But you generally won't notice long waiting time for even medium to high size documents.
+`jsonshquery` is not yet optimized for speed, our current objective is to make it works as expected. But you generally won't notice long query execution time for even medium to high size documents.
 
 This tool will load your json data into memory, so you might have some consideration when your json file has a huge size.
 
