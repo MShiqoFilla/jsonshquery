@@ -27,6 +27,8 @@ def field_exists(data, field_path):
     for key in keys:
         if isinstance(current, dict) and key in current:
             current = current[key]
+            if current is None:
+                return False
         else:
             return False
     return True
@@ -409,13 +411,48 @@ bool_functions = {
 
 def get_only_some_fields(data:dict, source:List[str]=None):
     """
-    Return the result for only certain fields
+    Return the result for only certain fields with proper nested structure
     """
     if not source:
         return data
+
     source_only = {}
+    nested_fields = {}
+
+    normal_source = []
     for field in source:
-        source_only[field] = get_nested_value(data, field) #data.get(field)
+        if "." in field:
+            parts = field.split(".")
+            parent = parts[0]
+            if parent not in nested_fields:
+                nested_fields[parent] = {}
+            nested_fields[parent][field] = parts[1:]
+        else:
+            normal_source.append(field)
+
+    for field in normal_source:
+        value = get_nested_value(data, field)
+        source_only[field] = value
+
+    for parent, fields in nested_fields.items():
+        parent_obj = {}
+        for field_path, remaining_path in fields.items():
+            value = get_nested_value(data, field_path)
+            current = parent_obj
+            for key in remaining_path[:-1]:
+                if key not in current:
+                    current[key] = {}
+                current = current[key]
+            if not isinstance(current, dict):
+                break
+
+            if remaining_path and isinstance(current, dict):
+                final_key = remaining_path[-1]
+                current[final_key] = value
+
+        if parent_obj:
+            source_only[parent] = parent_obj
+
     return source_only
 
 
