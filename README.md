@@ -1,11 +1,16 @@
 # JSONSHQUERY
 
+[![PyPI version](https://img.shields.io/pypi/v/jsonshquery)](https://pypi.org/project/jsonshquery/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/jsonshquery)](https://pypi.org/project/jsonshquery/)
+[![License](https://img.shields.io/pypi/l/jsonshquery)](LICENSE)
+[![Downloads](https://static.pepy.tech/badge/jsonshquery)](https://pepy.tech/projects/jsonshquery)
+
 Query JSON files using Elasticsearch Query DSL syntax.
 
 ## Overview
 Jsonshquery lets you query array of object in a json file or python dictionary by following Elasticsearch query DSL. If you are familiar with Elasticsearch, then there shouldn't be any problem for you to use this tool. 
 
-Latest version: `1.0.3`
+PyPI : https://pypi.org/project/jsonshquery
 
 ## Features
 
